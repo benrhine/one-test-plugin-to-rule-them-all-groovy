@@ -1,0 +1,21 @@
+# Reference
+
+- https://gist.github.com/damianmcdonald/b720d9798e0d84092bbd
+- https://github.com/eugenp/tutorials/blob/master/apache-httpclient/src/test/java/com/baeldung/httpclient/HttpClientMultipartLiveTest.java
+- https://stackoverflow.com/questions/28870172/encoder-function-for-multipart-form-data-in-groovy
+- https://stackoverflow.com/questions/6452678/httpbuilder-and-multipartentity-multipart-form-data-in-groovy
+- https://stackoverflow.com/questions/28870172/encoder-function-for-multipart-form-data-in-groovy
+- https://stackoverflow.com/questions/63841147/slack-api-files-to-upload-to-slack-channel
+- https://forum.flowable.org/t/how-to-make-a-post-request-with-multipart-form-data-using-http-task/6561/3
+  - this has to be so close to an answer in groovy but just can not get it to work
+- https://stackoverflow.com/questions/43464873/how-to-upload-files-to-slack-using-file-upload-and-requests
+- https://www.diehardtechy.com/2019/07/how-to-send-attachment-in-slack-channel.html
+- https://hamzazafridi.medium.com/sending-a-file-to-a-slack-channel-using-api-5cd39874af4f
+- https://medium.com/@geeorgey/how-to-upload-images-from-apex-using-slack-apis-file-upload-348d3e141a1e
+- https://medium.com/quickworkco/building-your-first-slack-bot-using-node-js-b91df17c7444
+- https://api.slack.com/messaging/files/uploading
+- https://api.slack.com/messaging/files/setup
+- https://api.slack.com/methods/files.upload/code if your using slacks library
+- https://joshbuchea.com/slack-api-files-upload-error-not-in-channel/
+- https://api.slack.com/methods/files.upload
+- 

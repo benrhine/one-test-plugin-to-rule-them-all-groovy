@@ -1,0 +1,165 @@
+package com.benrhine.plugins.v1.internal.theme
+
+import static com.benrhine.plugins.v1.internal.util.RendererUtils.escape
+import static java.lang.System.lineSeparator
+
+import com.benrhine.plugins.v1.TestDescriptorWrapper
+import com.benrhine.plugins.v1.TestLoggerExtension
+import com.benrhine.plugins.v1.TestResultWrapper
+import groovy.transform.CompileStatic
+
+/** --------------------------------------------------------------------------------------------------------------------
+ * AbstractTheme: TODO fill me in.
+ * ------------------------------------------------------------------------------------------------------------------ */
+@CompileStatic
+abstract class AbstractTheme implements Theme {
+
+    protected final TestLoggerExtension extension
+
+    protected AbstractTheme(TestLoggerExtension extension) {
+        this.extension = extension
+    }
+
+    @Override
+    final String suiteText(TestDescriptorWrapper descriptor, TestResultWrapper result) {
+        result.loggable ? suiteTextInternal(descriptor) : ''
+    }
+
+    protected abstract String suiteTextInternal(TestDescriptorWrapper descriptor)
+
+    @Override
+    final String testText(TestDescriptorWrapper descriptor, TestResultWrapper result) {
+        result.loggable ? testTextInternal(descriptor, result) : ''
+    }
+
+    protected abstract String testTextInternal(TestDescriptorWrapper descriptor, TestResultWrapper result)
+
+    @Override
+    String exceptionText(TestDescriptorWrapper descriptor, TestResultWrapper result) {
+        exceptionText(descriptor, result, 2)
+    }
+
+    @Override
+    final String suiteStandardStreamText(TestDescriptorWrapper descriptor, String lines, TestResultWrapper result) {
+        result.loggable ? suiteStandardStreamTextInternal(descriptor, lines) : ''
+    }
+
+    protected abstract suiteStandardStreamTextInternal(TestDescriptorWrapper descriptor, String lines)
+
+    @Override
+    final String testStandardStreamText(TestDescriptorWrapper descriptor, String lines, TestResultWrapper result) {
+        result.standardStreamLoggable ? testStandardStreamTextInternal(descriptor, lines) : ''
+    }
+
+    protected abstract testStandardStreamTextInternal(TestDescriptorWrapper descriptor, String lines)
+
+    protected String exceptionText(TestDescriptorWrapper descriptor, TestResultWrapper result, int indent) {
+        def line = new StringBuilder()
+
+        if (!extension.showExceptions || result.exception == null) {
+            return line
+        }
+
+        line << "${lineSeparator()}${lineSeparator()}"
+
+        new StackTracePrinter(descriptor, ' ' * indent, line, extension)
+                .printStackTrace(result.exception)
+                .toString()
+    }
+
+    @CompileStatic
+    private static class StackTracePrinter {
+        final TestDescriptorWrapper descriptor
+        final String indentation
+        final StringBuilder line
+        final TestLoggerExtension extension
+
+        StackTracePrinter(TestDescriptorWrapper descriptor, String indentation, StringBuilder line, TestLoggerExtension extension) {
+            this.descriptor = descriptor
+            this.indentation = indentation
+            this.line = line
+            this.extension = extension
+        }
+
+        StackTracePrinter printStackTrace(Throwable exception, List<StackTraceElement> parentStackTrace = [], boolean cause = false) {
+            if (cause) {
+                line << "${indentation}Caused by: "
+            }
+
+            line << message(exception, cause)
+            line << lineSeparator()
+
+            if (!extension.showStackTraces) {
+                return this
+            }
+
+            def filteredTrace = filter(exception.stackTrace)
+
+            line << stackTrace(filteredTrace, countCommonFrames(parentStackTrace, filteredTrace))
+            line << lineSeparator()
+
+            if (extension.showCauses && exception.cause) {
+                printStackTrace(exception.cause, filteredTrace, true)
+            }
+
+            this
+        }
+
+        String message(Throwable exception, boolean cause) {
+            exception.toString()
+                    .trim()
+                    .readLines()
+                    .withIndex()
+                    .collect { String message, index ->
+                        "${index != 0 || !cause ? indentation : ''}${escape(message)}"
+                    }.join(lineSeparator())
+        }
+
+        String stackTrace(List<StackTraceElement> stackTrace, int commonFrames) {
+            def trace = new StringBuilder(stackTrace
+                    .subList(0, stackTrace.size() - commonFrames)
+                    .collect {
+                        "${indentation}    at ${escape(it.toString())}"
+                    }.join(lineSeparator()))
+
+            if (commonFrames) {
+                trace << "${lineSeparator()}${indentation}    ... ${commonFrames} more"
+            }
+
+            trace.toString()
+        }
+
+        int countCommonFrames(List<StackTraceElement> parentStackTrace, List<StackTraceElement> stackTrace) {
+            int count = 0
+
+            if (parentStackTrace.empty) {
+                return count;
+            }
+
+            int i = stackTrace.size() - 1, j = parentStackTrace.size() - 1
+
+            while (i >= 1 && j >= 0 && stackTrace[i] == parentStackTrace[j]) {
+                ++count; i--; j--
+            }
+
+            count
+        }
+
+        List<StackTraceElement> filter(StackTraceElement[] stackTrace) {
+            if (extension.showFullStackTraces) {
+                return stackTrace.toList()
+            }
+
+            stackTrace.find {
+                it.className == descriptor.className
+            }.collect {
+                it as StackTraceElement
+            }
+        }
+
+        @Override
+        String toString() {
+            line.toString()
+        }
+    }
+}
